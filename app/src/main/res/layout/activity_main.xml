@@ -81,6 +81,7 @@
         android:layout_height="50dp"
         android:layout_margin="10dp"
         android:layout_marginBottom="8dp"
+        android:onClick="Rostrosfx"
         android:text="Rostros"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -7,6 +7,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
@@ -17,6 +21,10 @@ import android.widget.TextView;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.face.Face;
+import com.google.mlkit.vision.face.FaceDetection;
+import com.google.mlkit.vision.face.FaceDetector;
+import com.google.mlkit.vision.face.FaceDetectorOptions;
 import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
@@ -113,6 +121,40 @@ public class MainActivity extends AppCompatActivity
 
         recognizer.process(image)
                 .addOnSuccessListener(this)
+                .addOnFailureListener(this);
+    }
+
+    public void Rostrosfx(View v) {
+        InputImage image = InputImage.fromBitmap(mSelectedImage, 0);
+        FaceDetectorOptions options =
+                new FaceDetectorOptions.Builder()
+                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                        .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
+                        .build();
+        FaceDetector detector = FaceDetection.getClient(options);
+        detector.process(image)
+                .addOnSuccessListener(new OnSuccessListener<List<Face>>() {
+                    @Override
+                    public void onSuccess(List<Face> faces) {
+                        if (faces.size() == 0) {
+                            txtResults.setText("No Hay rostros");
+                        }else{
+                            txtResults.setText("Hay " + faces.size() + " rostro(s)");
+                        }
+
+                        BitmapDrawable drawable = (BitmapDrawable) mImageView.getDrawable();
+                        Bitmap bitmap = drawable.getBitmap().copy(Bitmap.Config.ARGB_8888,true);
+                        Canvas canvas = new Canvas(bitmap);
+                        Paint paint = new Paint();
+                        paint.setColor(Color.RED);
+                        paint.setStrokeWidth(5);
+                        paint.setStyle(Paint.Style.STROKE);
+                        for (Face rostro:faces) {
+                            canvas.drawRect(rostro.getBoundingBox(), paint);
+                        }
+                        mImageView.setImageBitmap(bitmap);
+                    }
+                })
                 .addOnFailureListener(this);
     }
 
