@@ -3,7 +3,6 @@ package com.example.googlemlf;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -32,6 +31,11 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
 import java.io.IOException;
 import java.util.List;
+
+import com.google.mlkit.vision.label.ImageLabeler;
+import com.google.mlkit.vision.label.ImageLabeling;
+import com.google.mlkit.vision.label.ImageLabel;
+import com.google.mlkit.vision.label.defaults.ImageLabelerOptions;
 
 public class MainActivity extends AppCompatActivity
         implements OnSuccessListener<Text>, OnFailureListener {
@@ -124,13 +128,14 @@ public class MainActivity extends AppCompatActivity
                 .addOnFailureListener(this);
     }
 
-    public void Rostrosfx(View v) {
+    public void Rostrosfx(View  v) {
         InputImage image = InputImage.fromBitmap(mSelectedImage, 0);
         FaceDetectorOptions options =
                 new FaceDetectorOptions.Builder()
                         .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
                         .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
                         .build();
+
         FaceDetector detector = FaceDetection.getClient(options);
         detector.process(image)
                 .addOnSuccessListener(new OnSuccessListener<List<Face>>() {
@@ -141,21 +146,37 @@ public class MainActivity extends AppCompatActivity
                         }else{
                             txtResults.setText("Hay " + faces.size() + " rostro(s)");
                         }
-
                         BitmapDrawable drawable = (BitmapDrawable) mImageView.getDrawable();
                         Bitmap bitmap = drawable.getBitmap().copy(Bitmap.Config.ARGB_8888,true);
                         Canvas canvas = new Canvas(bitmap);
+
                         Paint paint = new Paint();
                         paint.setColor(Color.RED);
                         paint.setStrokeWidth(5);
                         paint.setStyle(Paint.Style.STROKE);
+
                         for (Face rostro:faces) {
                             canvas.drawRect(rostro.getBoundingBox(), paint);
                         }
                         mImageView.setImageBitmap(bitmap);
+
                     }
+                }).addOnFailureListener(this);
+    }
+
+
+    public void Labeling(View  v) {
+        InputImage image = InputImage.fromBitmap(mSelectedImage, 0);
+        ImageLabeler labeler =          ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS);
+        labeler.process(image)
+                .addOnSuccessListener(new OnSuccessListener<List<ImageLabel>>() {
+                    @Override
+                    public void onSuccess(List<ImageLabel> labels) {
+                        String resultados = "";
+                        for (ImageLabel label : labels)
+                            resultados = resultados + label.getText() + " " + label.getConfidence() + "%\n";
+                        txtResults.setText(resultados);               }
                 })
                 .addOnFailureListener(this);
     }
-
 }
