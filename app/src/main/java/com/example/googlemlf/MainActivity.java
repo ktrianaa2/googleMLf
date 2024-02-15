@@ -16,9 +16,14 @@ import android.view.View;
 import android.Manifest;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.mlkit.vision.barcode.BarcodeScanner;
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
+import com.google.mlkit.vision.barcode.BarcodeScanning;
+import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.Face;
 import com.google.mlkit.vision.face.FaceDetection;
@@ -49,6 +54,8 @@ public class MainActivity extends AppCompatActivity
 
     TextView txtResults;
 
+    private BarcodeScanner barcodeScanner;
+    private BarcodeScannerOptions barcodeScannerOptions;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,18 +66,23 @@ public class MainActivity extends AppCompatActivity
         txtResults = findViewById(R.id.txtresults);
         mImageView = findViewById(R.id.image_view);
 
-        if(checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
-            requestPermissions(new String[]{Manifest.permission.CAMERA},100);
+        barcodeScannerOptions = new BarcodeScannerOptions.Builder()
+                .setBarcodeFormats(Barcode.FORMAT_ALL_FORMATS).build();
+
+        barcodeScanner = BarcodeScanning.getClient(barcodeScannerOptions);
+
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, 100);
     }
 
-    public void abrirGaleria (View view){
+    public void abrirGaleria(View view) {
         Intent i = new Intent(Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(i, REQUEST_GALLERY);
     }
 
 
-    public void abrirCamera (View view){
+    public void abrirCamera(View view) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(intent, REQUEST_CAMERA);
     }
@@ -100,10 +112,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onSuccess(Text text) {
         List<Text.TextBlock> blocks = text.getTextBlocks();
-        String resultados="";
+        String resultados = "";
         if (blocks.size() == 0) {
             resultados = "No hay Texto";
-        }else{
+        } else {
             for (int i = 0; i < blocks.size(); i++) {
                 List<Text.Line> lines = blocks.get(i).getLines();
                 for (int j = 0; j < lines.size(); j++) {
@@ -113,7 +125,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 }
             }
-            resultados=resultados + "\n";
+            resultados = resultados + "\n";
         }
         txtResults.setText(resultados);
     }
@@ -128,7 +140,7 @@ public class MainActivity extends AppCompatActivity
                 .addOnFailureListener(this);
     }
 
-    public void Rostrosfx(View  v) {
+    public void Rostrosfx(View v) {
         InputImage image = InputImage.fromBitmap(mSelectedImage, 0);
         FaceDetectorOptions options =
                 new FaceDetectorOptions.Builder()
@@ -143,11 +155,11 @@ public class MainActivity extends AppCompatActivity
                     public void onSuccess(List<Face> faces) {
                         if (faces.size() == 0) {
                             txtResults.setText("No Hay rostros");
-                        }else{
+                        } else {
                             txtResults.setText("Hay " + faces.size() + " rostro(s)");
                         }
                         BitmapDrawable drawable = (BitmapDrawable) mImageView.getDrawable();
-                        Bitmap bitmap = drawable.getBitmap().copy(Bitmap.Config.ARGB_8888,true);
+                        Bitmap bitmap = drawable.getBitmap().copy(Bitmap.Config.ARGB_8888, true);
                         Canvas canvas = new Canvas(bitmap);
 
                         Paint paint = new Paint();
@@ -155,7 +167,7 @@ public class MainActivity extends AppCompatActivity
                         paint.setStrokeWidth(5);
                         paint.setStyle(Paint.Style.STROKE);
 
-                        for (Face rostro:faces) {
+                        for (Face rostro : faces) {
                             canvas.drawRect(rostro.getBoundingBox(), paint);
                         }
                         mImageView.setImageBitmap(bitmap);
@@ -165,9 +177,9 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    public void Labeling(View  v) {
+    public void Labeling(View v) {
         InputImage image = InputImage.fromBitmap(mSelectedImage, 0);
-        ImageLabeler labeler =          ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS);
+        ImageLabeler labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS);
         labeler.process(image)
                 .addOnSuccessListener(new OnSuccessListener<List<ImageLabel>>() {
                     @Override
@@ -175,8 +187,41 @@ public class MainActivity extends AppCompatActivity
                         String resultados = "";
                         for (ImageLabel label : labels)
                             resultados = resultados + label.getText() + " " + label.getConfidence() + "%\n";
-                        txtResults.setText(resultados);               }
+                        txtResults.setText(resultados);
+                    }
                 })
                 .addOnFailureListener(this);
     }
+
+
+    public void scanqr(View v) {
+        if (mSelectedImage != null) {
+            InputImage image = InputImage.fromBitmap(mSelectedImage, 0);
+
+            barcodeScanner.process(image)
+                    .addOnSuccessListener(new OnSuccessListener<List<Barcode>>() {
+                        @Override
+                        public void onSuccess(List<Barcode> barcodes) {
+                            if (barcodes.size() == 0) {
+                                txtResults.setText("No se encontraron códigos QR o códigos de barras");
+                            } else {
+                                StringBuilder resultText = new StringBuilder();
+                                for (Barcode barcode : barcodes) {
+                                    if (barcode.getFormat() == Barcode.FORMAT_QR_CODE) {
+                                        resultText.append("Contenido QR: ").append(barcode.getDisplayValue()).append("\n");
+                                    } else  {
+                                        resultText.append("Código de barras: ").append(barcode.getDisplayValue()).append("\n");
+                                    }
+                                }
+                                txtResults.setText(resultText.toString());
+                            }
+                        }
+                    })
+                    .addOnFailureListener(this);
+        } else {
+            Toast.makeText(this, "Seleccione una imagen antes de escanear", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
 }
