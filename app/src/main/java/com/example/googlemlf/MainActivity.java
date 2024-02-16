@@ -18,7 +18,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.googlemlf.ml.Modeloflowers;
+import com.example.googlemlf.ml.Imagenes;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
@@ -233,11 +233,11 @@ public class MainActivity extends AppCompatActivity
 
     public void PersonalizedModel(View v) {
         try {
-            String[] etiquetas = {"Margaritas", "Dientes de León", "Rosas", "Girasoles", "Tulipanes"};
-            Modeloflowers model = Modeloflowers.newInstance(getApplicationContext());
+            String[] etiquetas = {"Morales", "Reyes", "Alvarez", "Vera", "Navas", "Triana"};
+            Imagenes model = Imagenes.newInstance(getApplicationContext());
             TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.FLOAT32);
             inputFeature0.loadBuffer(convertirImagenATensorBuffer(mSelectedImage));
-            Modeloflowers.Outputs outputs = model.process(inputFeature0);
+            Imagenes.Outputs outputs = model.process(inputFeature0);
             TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
             txtResults.setText(obtenerEtiquetayProbabilidad(etiquetas, outputFeature0.getFloatArray()));
             model.close();
