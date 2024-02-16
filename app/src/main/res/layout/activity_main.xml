@@ -63,7 +63,7 @@
 
     <Button
         android:id="@+id/btText"
-        android:layout_width="80dp"
+        android:layout_width="75dp"
         android:layout_height="48dp"
         android:layout_margin="10dp"
         android:layout_marginStart="5dp"
@@ -77,7 +77,7 @@
 
     <Button
         android:id="@+id/btFace"
-        android:layout_width="80dp"
+        android:layout_width="75dp"
         android:layout_height="48dp"
         android:layout_margin="10dp"
         android:layout_marginEnd="5dp"
@@ -90,7 +90,7 @@
 
     <Button
         android:id="@+id/btLabel"
-        android:layout_width="80dp"
+        android:layout_width="75dp"
         android:layout_height="48dp"
         android:layout_margin="10dp"
         android:layout_marginEnd="5dp"
@@ -103,7 +103,7 @@
 
     <Button
         android:id="@+id/btQr"
-        android:layout_width="80dp"
+        android:layout_width="75dp"
         android:layout_height="48dp"
         android:layout_margin="10dp"
         android:layout_marginEnd="5dp"
@@ -111,7 +111,21 @@
         android:onClick="scanqr"
         android:text="Scan QR"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="btFlor"
         app:layout_constraintStart_toEndOf="@+id/btLabel" />
+
+    <Button
+        android:id="@+id/btFlor"
+        android:layout_width="75dp"
+        android:layout_height="48dp"
+        android:layout_margin="10dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="8dp"
+        android:onClick="PersonalizedModel"
+        android:text="Flower"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btQr" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
